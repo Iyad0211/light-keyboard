@@ -75,8 +75,17 @@ object EnShared {
         }
     }
 
-    class ExtendedCharKeyboard(rootCode: Int) : Layout {
-        private val rows = extendedCharMapping[rootCode]
+    /**
+     * Long-press popup of alternate characters for [rootCode].
+     *
+     * [mapping] defaults to the Latin accent table below; other scripts (e.g. Arabic) pass
+     * their own table so the same popup UI is reused.
+     */
+    class ExtendedCharKeyboard(
+        rootCode: Int,
+        mapping: Map<Int, List<List<Char>>> = extendedCharMapping
+    ) : Layout {
+        private val rows = mapping[rootCode]
 
         @Composable
         override fun ColumnScope.Render(

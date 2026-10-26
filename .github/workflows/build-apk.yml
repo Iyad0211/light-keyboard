@@ -1,0 +1,58 @@
+name: Build keyboard APK
+
+# Builds the installable keyboard app (with the Arabic layout) on every push to main,
+# or on demand from the Actions tab. Download the APK from the run's "Artifacts" section.
+# Pushing a tag like v1.0-ar also attaches the APK to a GitHub Release.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Assemble APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests
+        run: ./gradlew :ui:testDebugUnitTest --stacktrace
+
+      - name: Build APK
+        run: ./gradlew :app:assembleDebug --stacktrace
+
+      - name: Rename APK
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/LP3-Keyboard-Arabic.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LP3-Keyboard-Arabic
+          path: dist/LP3-Keyboard-Arabic.apk
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/LP3-Keyboard-Arabic.apk

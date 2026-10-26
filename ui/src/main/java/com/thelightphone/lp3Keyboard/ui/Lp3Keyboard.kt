@@ -420,10 +420,17 @@ fun RowScope.Key(
     swipeConfig: SwipeConfig?,
     enableKeyAnimation: Boolean,
     override: SpecialKey? = null,
-    width: Dp = STANDARD_KEY_WIDTH_DP.dp
+    width: Dp = STANDARD_KEY_WIDTH_DP.dp,
+    /**
+     * Text drawn on the key, if it should differ from the character typed. Used for Arabic
+     * diacritics, which are drawn on a tatweel (ـَ) so they're visible but type only the mark.
+     */
+    displayLabel: String? = null
 ) {
     var pressed by remember { mutableStateOf(false) }
-    val label = remember(code) { buildString { appendCodePoint(code) } }
+    val label = remember(code, displayLabel) {
+        displayLabel ?: buildString { appendCodePoint(code) }
+    }
 
     val onPressed = remember(code, override, callback) {
         override

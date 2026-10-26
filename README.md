@@ -10,6 +10,23 @@ If you'd like to contribute/file issues, please read [CONTRIBUTING.md](CONTRIBUT
 
 Currently, only English/QWERTY is supported. We want to add more languages/layouts as soon as possible. Please reach out if there are any you are particularly excited about!
 
+#### Arabic (العربية)
+
+`LayoutRegistryItem.ArStandard` — standard Arabic key positions (same as Gboard / Arabic 101 PC), drawn with the stock LP3 keys:
+
+```
+ض ص ث ق ف غ ع ه خ ح ج
+ش س ي ب ل ا ت ن م ك ط
+ذ ء ؤ ر ى ة و ز ظ د  ⌫
+123  ☺   ________   ↵  🎤
+```
+
+- No shift key (Arabic has no case); the third row holds ten letters instead. Keys shrink slightly (~31dp) so 11 fit in the same 350dp footprint as English.
+- Long-press: ا → أ إ آ ٱ ء · ي → ئ ى · و → ؤ · ه ↔ ة · ء → أ إ ؤ ئ · Gulf letters ج → چ, ك/ق → گ, ف → ڤ, ب → پ.
+- `123` page: Western digits (hold for ١٢٣…), Arabic punctuation ، ؟ ؛ (hold for , ? ;).
+- `#+=` page: tashkeel row  َ ً ُ ٌ ِ ٍ ْ ّ ٰ ـ  (drawn on a tatweel, types the bare mark).
+- Letters key on the number/symbol pages reads `أبج`.
+
 ## Usage
 
 The `app` module wraps the keyboard into an Android IME app, which can be installed on any Android device
