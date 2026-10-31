@@ -26,6 +26,16 @@ object LayoutPreferences {
         prefs(context).edit().putString(KEY_ACTIVE_LAYOUT, item.uniqueId).apply()
     }
 
+    /** Which language a bilingual layout was last left on, so it reopens there. */
+    private const val KEY_BILINGUAL_LANGUAGE = "bilingual_language_index"
+
+    fun getBilingualLanguage(context: Context): Int =
+        prefs(context).getInt(KEY_BILINGUAL_LANGUAGE, 0)
+
+    fun setBilingualLanguage(context: Context, index: Int) {
+        prefs(context).edit().putInt(KEY_BILINGUAL_LANGUAGE, index).apply()
+    }
+
     fun registerOnChange(
         context: Context,
         listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener,

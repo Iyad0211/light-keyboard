@@ -24,6 +24,7 @@ import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.ThirdRow
 import com.thelightphone.lp3Keyboard.ui.viewmodel.ArabicLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.BeAzertyLp3KeyboardViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.BilingualLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.EnColemakLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.EnQwertyLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.FrAzertyLp3KeyboardViewModel
@@ -44,7 +45,8 @@ enum class LayoutRegistryItem(
     EnColemak(Locale.ENGLISH, "colemak", "Colemak (English)"),
     FrAzerty(Locale.FRENCH, "azerty", "AZERTY (French)"),
     BeAzerty(Locale("nl", "BE"), "azerty", "AZERTY (Belgium)"),
-    ArStandard(Locale("ar"), "standard", "العربية (Arabic)")
+    ArStandard(Locale("ar"), "standard", "العربية (Arabic)"),
+    EnArBilingual(Locale("ar"), "bilingual-en", "English + العربية")
     ;
 
     val uniqueId: String = "${locale}_$variant"
@@ -90,6 +92,13 @@ fun <SwipeResultType> LayoutRegistryItem.buildRootViewModel(
         )
 
         LayoutRegistryItem.ArStandard -> ArabicLp3KeyboardViewModel(
+            passedCallback,
+            swipeCallback,
+            haptic,
+            optionsForLayout
+        )
+
+        LayoutRegistryItem.EnArBilingual -> BilingualLp3KeyboardViewModel.englishArabic(
             passedCallback,
             swipeCallback,
             haptic,

@@ -20,6 +20,7 @@ import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
 import com.thelightphone.lp3Keyboard.ui.layout.buildRootViewModel
+import com.thelightphone.lp3Keyboard.ui.viewmodel.BilingualLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 
@@ -50,6 +51,18 @@ class IMEService : LifecycleInputMethodService(),
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val dummySwipeCallback = object : Lp3KeyboardSwipeCallback<Unit> {}
+                if (layout == LayoutRegistryItem.EnArBilingual) {
+                    // Reopen on whichever language was last used, and remember each switch.
+                    return BilingualLp3KeyboardViewModel.englishArabic(
+                        this@IMEService,
+                        dummySwipeCallback,
+                        haptic = ::tick,
+                        initialIndex = LayoutPreferences.getBilingualLanguage(this@IMEService),
+                        onLanguageChanged = {
+                            LayoutPreferences.setBilingualLanguage(this@IMEService, it)
+                        }
+                    ) as T
+                }
                 return layout.buildRootViewModel(
                     this@IMEService,
                     dummySwipeCallback,

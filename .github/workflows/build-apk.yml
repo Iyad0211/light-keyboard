@@ -1,8 +1,8 @@
 name: Build keyboard APK
 
-# Builds the installable keyboard app (with the Arabic layout) on every push to main,
-# or on demand from the Actions tab. Download the APK from the run's "Artifacts" section.
-# Pushing a tag like v1.0-ar also attaches the APK to a GitHub Release.
+# Builds the installable keyboard app (English, Arabic, and English + Arabic) on every push to
+# main, and publishes it as the latest GitHub Release, so the newest APK is always at:
+#   https://github.com/<owner>/light-keyboard/releases/latest/download/LP3-Keyboard-EN-AR.apk
 
 on:
   push:
@@ -43,16 +43,21 @@ jobs:
       - name: Rename APK
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/LP3-Keyboard-Arabic.apk
+          cp app/build/outputs/apk/debug/app-debug.apk dist/LP3-Keyboard-EN-AR.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LP3-Keyboard-Arabic
-          path: dist/LP3-Keyboard-Arabic.apk
+          name: LP3-Keyboard-EN-AR
+          path: dist/LP3-Keyboard-EN-AR.apk
 
-      - name: Attach to release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Publish release
+        if: github.event_name == 'push'
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/LP3-Keyboard-Arabic.apk
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build-{0}', github.run_number) }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('Keyboard build {0}', github.run_number) }}
+          target_commitish: ${{ github.sha }}
+          body: ${{ github.event.head_commit.message }}
+          make_latest: true
+          files: dist/LP3-Keyboard-EN-AR.apk

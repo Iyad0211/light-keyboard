@@ -27,6 +27,21 @@ Currently, only English/QWERTY is supported. We want to add more languages/layou
 - `#+=` page: tashkeel row  َ ً ُ ٌ ِ ٍ ْ ّ ٰ ـ  (drawn on a tatweel, types the bare mark).
 - Letters key on the number/symbol pages reads `أبج`.
 
+#### English + Arabic (bilingual)
+
+`LayoutRegistryItem.EnArBilingual` — QWERTY and the Arabic layout above in one keyboard. A language key next to `123` switches between them: it reads `ع` while typing English and `EN` while typing Arabic, and its width comes out of the space bar so the bottom row keeps its footprint.
+
+```
+123  ع  ☺  ______  ↵  🎤      (English)
+123  EN ☺  ______  ↵  🎤      (Arabic)
+```
+
+- Each language keeps its own long-press popups, numbers and symbols pages; switching always lands on the other language's letters.
+- Sentence capitalisation carries over when switching back to English.
+- The keyboard app reopens on the last language used.
+- Built from `BilingualLp3KeyboardViewModel`, which wraps any two (or more) single-language view models, so other pairs are a few lines.
+- Single-language layouts are unchanged: `KeyboardOptions.languageKeyLabel` defaults to `null`, which hides the key.
+
 ## Usage
 
 The `app` module wraps the keyboard into an Android IME app, which can be installed on any Android device

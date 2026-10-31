@@ -77,7 +77,9 @@ enum class SpecialKey {
     Submit,
     Close,
     Voice,
-    Return
+    Return,
+    /** Switches between the languages of a multi-language keyboard (e.g. English and Arabic). */
+    Language
 }
 
 interface Lp3KeyboardCallback {
@@ -106,6 +108,8 @@ const val STANDARD_KEY_WIDTH_DP = 35
 const val ICON_KEY_WIDTH_DP = STANDARD_KEY_WIDTH_DP + 14
 const val MEDIUM_KEY_WIDTH_DP = STANDARD_KEY_WIDTH_DP + 8
 const val STANDARD_ROW_HEIGHT_DP = 44
+const val LANGUAGE_KEY_WIDTH_DP = 40
+private const val SPACE_BAR_WIDTH_DP = 160
 const val STANDARD_KEY_TEXT_SP = 25
 const val MINIMUM_SWIPE_DP = 40
 private const val SWIPE_TRAIL_FADE_MS = 350L
@@ -505,7 +509,8 @@ fun RowScope.MultiLabelKey(
     labelText: String,
     key: SpecialKey,
     callback: Lp3KeyboardCallback,
-    enableKeyAnimation: Boolean
+    enableKeyAnimation: Boolean,
+    width: Dp = ICON_KEY_WIDTH_DP.dp
 ) {
     var pressed by remember { mutableStateOf(false) }
     val onPressed = remember(key, callback) { { callback.onSpecialKeyPressed(key) } }
@@ -513,7 +518,7 @@ fun RowScope.MultiLabelKey(
     val onLongPressed = remember(key, callback) { { callback.onSpecialKeyLongPressed(key) } }
     Box(
         modifier = Modifier
-            .width(ICON_KEY_WIDTH_DP.dp)
+            .width(width)
             .fillMaxHeight()
             .keyInput(
                 inputKey = labelText,
@@ -555,7 +560,12 @@ data class KeyboardOptions(
     val displayReturn: Boolean,
     val displayVoice: Boolean,
     val enableKeyAnimation: Boolean,
-    val swipeEnabled: Boolean
+    val swipeEnabled: Boolean,
+    /**
+     * When set, the bottom row shows a language key with this label (e.g. "ع" while typing
+     * English, "EN" while typing Arabic). Null keeps the stock single-language bottom row.
+     */
+    val languageKeyLabel: String? = null
 )
 
 data class LayoutOptions(
@@ -647,7 +657,17 @@ fun ColumnScope.FinalRow(
         horizontalArrangement = Arrangement.Center,
     ) {
         val iconKeyWidth = STANDARD_KEY_WIDTH_DP + 12
+        val languageLabel = options.languageKeyLabel
         leftButton()
+        if (languageLabel != null) {
+            MultiLabelKey(
+                languageLabel,
+                SpecialKey.Language,
+                callback,
+                options.enableKeyAnimation,
+                width = LANGUAGE_KEY_WIDTH_DP.dp
+            )
+        }
         if (!options.emojis.isNullOrEmpty()) {
             IconKey(
                 R.drawable.smile,
@@ -660,7 +680,9 @@ fun ColumnScope.FinalRow(
         } else {
             Spacer(Modifier.width(iconKeyWidth.dp))
         }
-        SpaceBar(callback, 160.dp, options.enableKeyAnimation)
+        // The language key's width comes out of the space bar so the row keeps the same footprint.
+        val spaceWidth = SPACE_BAR_WIDTH_DP - if (languageLabel != null) LANGUAGE_KEY_WIDTH_DP else 0
+        SpaceBar(callback, spaceWidth.dp, options.enableKeyAnimation)
         if (options.displayReturn) {
             IconKey(
                 R.drawable.return_lp3,
