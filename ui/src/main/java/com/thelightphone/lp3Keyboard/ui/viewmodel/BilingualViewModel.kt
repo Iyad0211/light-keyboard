@@ -1,6 +1,7 @@
 package com.thelightphone.lp3Keyboard.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.thelightphone.lp3Keyboard.ui.KeyboardOptions
 import com.thelightphone.lp3Keyboard.ui.LayoutOptions
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
@@ -8,6 +9,7 @@ import com.thelightphone.lp3Keyboard.ui.SpecialKey
 import com.thelightphone.lp3Keyboard.ui.layout.Layout
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 /**
  * A keyboard that holds several single-language keyboards and switches between them with the
@@ -52,6 +54,17 @@ class BilingualLp3KeyboardViewModel<SwipeResult>(
     override val keyboardOptionsFlow: StateFlow<KeyboardOptions>
         get() = mutableKeyboardOptions
     private val mutableKeyboardOptions = MutableStateFlow(currentKeyboardOptions())
+
+    init {
+        // Keyboard settings (emoji row, voice key, animation) can change while no key is touched.
+        languages.forEach { language ->
+            viewModelScope.launch {
+                language.viewModel.keyboardOptionsFlow.collect {
+                    mutableKeyboardOptions.value = currentKeyboardOptions()
+                }
+            }
+        }
+    }
 
     private fun currentKeyboardOptions(): KeyboardOptions =
         active.keyboardOptionsFlow.value.copy(languageKeyLabel = languages[activeIndex].switchLabel)
@@ -151,16 +164,29 @@ class BilingualLp3KeyboardViewModel<SwipeResult>(
             optionsForLayout: (Layout) -> LayoutOptions = {
                 LayoutOptions(displayCloseButton = true)
             },
+            keyboardOptionsFlow: StateFlow<KeyboardOptions> = MutableStateFlow(
+                KeyboardOptions(
+                    defaultEmojis,
+                    displayReturn = true,
+                    displayVoice = true,
+                    enableKeyAnimation = true,
+                    swipeEnabled = false
+                )
+            ),
             initialIndex: Int = ENGLISH,
             onLanguageChanged: (Int) -> Unit = {},
         ): BilingualLp3KeyboardViewModel<SwipeResult> = BilingualLp3KeyboardViewModel(
             languages = listOf(
                 Language(
-                    EnQwertyLp3KeyboardViewModel(passedCallback, swipeCallback, haptic, optionsForLayout),
+                    EnQwertyLp3KeyboardViewModel(
+                        passedCallback, swipeCallback, haptic, optionsForLayout, keyboardOptionsFlow
+                    ),
                     switchLabel = "ع"
                 ),
                 Language(
-                    ArabicLp3KeyboardViewModel(passedCallback, swipeCallback, haptic, optionsForLayout),
+                    ArabicLp3KeyboardViewModel(
+                        passedCallback, swipeCallback, haptic, optionsForLayout, keyboardOptionsFlow
+                    ),
                     switchLabel = "EN"
                 ),
             ),

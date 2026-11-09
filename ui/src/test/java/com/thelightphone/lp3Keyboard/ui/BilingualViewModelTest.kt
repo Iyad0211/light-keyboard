@@ -10,6 +10,7 @@ import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -28,6 +29,8 @@ class BilingualViewModelTest {
     private val callback = mockk<Lp3RepeatableKeyboardCallback>(relaxed = true)
     private val swipeCallback = mockk<Lp3KeyboardSwipeCallback<Unit>>(relaxed = true)
     private val switches = mutableListOf<Int>()
+
+    private val dispatcher = StandardTestDispatcher()
 
     private fun build(initial: Int = BilingualLp3KeyboardViewModel.ENGLISH) =
         BilingualLp3KeyboardViewModel.englishArabic(
@@ -49,7 +52,7 @@ class BilingualViewModelTest {
 
     @Before
     fun setUp() {
-        Dispatchers.setMain(StandardTestDispatcher())
+        Dispatchers.setMain(dispatcher)
     }
 
     @After
@@ -158,5 +161,33 @@ class BilingualViewModelTest {
         val vm = LayoutRegistryItem.EnArBilingual.buildRootViewModel(callback, swipeCallback)
         assertTrue(vm is BilingualLp3KeyboardViewModel<*>)
         assertEquals("ar_bilingual-en", LayoutRegistryItem.EnArBilingual.uniqueId)
+    }
+
+    @Test
+    fun `keyboard settings changes reach the bilingual keyboard and keep the language key`() {
+        val settings = MutableStateFlow(
+            KeyboardOptions(
+                emojis = null,
+                displayReturn = true,
+                displayVoice = true,
+                enableKeyAnimation = true,
+                swipeEnabled = false
+            )
+        )
+        val vm = BilingualLp3KeyboardViewModel.englishArabic(
+            passedCallback = callback,
+            swipeCallback = swipeCallback,
+            keyboardOptionsFlow = settings,
+        )
+        dispatcher.scheduler.advanceUntilIdle()
+
+        settings.value = settings.value.copy(displayVoice = false)
+        dispatcher.scheduler.advanceUntilIdle()
+        assertEquals(false, vm.keyboardOptionsFlow.value.displayVoice)
+        assertEquals("ع", vm.keyboardOptionsFlow.value.languageKeyLabel)
+
+        vm.tapLanguage()
+        assertEquals(false, vm.keyboardOptionsFlow.value.displayVoice)
+        assertEquals("EN", vm.keyboardOptionsFlow.value.languageKeyLabel)
     }
 }

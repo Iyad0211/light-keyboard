@@ -18,11 +18,13 @@ import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardSwipeCallback
 import com.thelightphone.lp3Keyboard.ui.Lp3KeyboardView
 import com.thelightphone.lp3Keyboard.ui.SpecialKey
+import com.thelightphone.lp3Keyboard.ui.keyboardOptions
 import com.thelightphone.lp3Keyboard.ui.layout.LayoutRegistryItem
 import com.thelightphone.lp3Keyboard.ui.layout.buildRootViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.BilingualLp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3KeyboardViewModel
 import com.thelightphone.lp3Keyboard.ui.viewmodel.Lp3RepeatableKeyboardCallback
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class IMEService : LifecycleInputMethodService(),
     ViewModelStoreOwner,
@@ -30,6 +32,10 @@ class IMEService : LifecycleInputMethodService(),
     Lp3RepeatableKeyboardCallback {
 
     private var renderedLayout: LayoutRegistryItem? = null
+
+    private val keyboardOptions by lazy { MutableStateFlow(readKeyboardOptions()) }
+
+    private fun readKeyboardOptions() = contentResolver.keyboardOptions().copy(swipeEnabled = false)
     private var viewModel: Lp3KeyboardViewModel<*>? = null
 
     private var layoutPrefs: SharedPreferences? = null
@@ -57,6 +63,7 @@ class IMEService : LifecycleInputMethodService(),
                         this@IMEService,
                         dummySwipeCallback,
                         haptic = ::tick,
+                        keyboardOptionsFlow = keyboardOptions,
                         initialIndex = LayoutPreferences.getBilingualLanguage(this@IMEService),
                         onLanguageChanged = {
                             LayoutPreferences.setBilingualLanguage(this@IMEService, it)
@@ -66,7 +73,8 @@ class IMEService : LifecycleInputMethodService(),
                 return layout.buildRootViewModel(
                     this@IMEService,
                     dummySwipeCallback,
-                    haptic = ::tick
+                    haptic = ::tick,
+                    keyboardOptionsFlow = keyboardOptions,
                 ) as T
             }
         }
@@ -103,6 +111,7 @@ class IMEService : LifecycleInputMethodService(),
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        keyboardOptions.value = readKeyboardOptions()
         refreshLayoutIfNeeded()
     }
 
