@@ -420,10 +420,14 @@ fun RowScope.Key(
     swipeConfig: SwipeConfig?,
     enableKeyAnimation: Boolean,
     override: SpecialKey? = null,
-    width: Dp = STANDARD_KEY_WIDTH_DP.dp
+    width: Dp = STANDARD_KEY_WIDTH_DP.dp,
+    // shown instead of the typed character, e.g. a diacritic drawn on a tatweel
+    displayLabel: String? = null
 ) {
     var pressed by remember { mutableStateOf(false) }
-    val label = remember(code) { buildString { appendCodePoint(code) } }
+    val label = remember(code, displayLabel) {
+        displayLabel ?: buildString { appendCodePoint(code) }
+    }
 
     val onPressed = remember(code, override, callback) {
         override

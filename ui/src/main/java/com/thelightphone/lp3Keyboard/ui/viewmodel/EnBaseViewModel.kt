@@ -44,6 +44,9 @@ abstract class EnBaseViewModel<SwipeResult>(
     val lowerCaseLayout: Layout,
     val upperCaseLayout: Layout,
     val capsLockedLayout: Layout,
+    val numberLayout: Layout = EnShared.NumberLayout,
+    val symbolsLayout: Layout = EnShared.SymbolsLayout,
+    val extendedCharMapping: Map<Int, List<List<Char>>> = EnShared.extendedCharMapping,
 ) : ViewModel(), Lp3KeyboardViewModel<SwipeResult> {
 
     var previousLayout: Layout? = null
@@ -92,7 +95,7 @@ abstract class EnBaseViewModel<SwipeResult>(
     }
 
     protected open fun isOnSymbolsOrNumbers() =
-        layoutFlow.value is EnShared.SymbolsLayout || layoutFlow.value is EnShared.NumberLayout
+        layoutFlow.value === symbolsLayout || layoutFlow.value === numberLayout
 
     override fun onKeyPressed(code: Int) {
         haptic()
@@ -156,7 +159,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Numbers -> {
-                setLayout(EnShared.NumberLayout)
+                setLayout(numberLayout)
             }
 
             SpecialKey.Letters -> {
@@ -164,7 +167,7 @@ abstract class EnBaseViewModel<SwipeResult>(
             }
 
             SpecialKey.Symbols -> {
-                setLayout(EnShared.SymbolsLayout)
+                setLayout(symbolsLayout)
             }
 
             SpecialKey.Emojis -> {
@@ -209,9 +212,9 @@ abstract class EnBaseViewModel<SwipeResult>(
 
     override fun onKeyLongPressed(code: Int) {
         heldKeys[code]?.cancel()
-        if (EnShared.extendedCharMapping.containsKey(code)) {
+        if (extendedCharMapping.containsKey(code)) {
             haptic()
-            setLayout(EnShared.ExtendedCharKeyboard(code))
+            setLayout(EnShared.ExtendedCharKeyboard(code, extendedCharMapping))
             heldKeys[code] = viewModelScope.launch { }
             return
         }

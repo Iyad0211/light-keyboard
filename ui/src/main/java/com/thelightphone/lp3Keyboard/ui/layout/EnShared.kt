@@ -75,8 +75,12 @@ object EnShared {
         }
     }
 
-    class ExtendedCharKeyboard(rootCode: Int) : Layout {
-        private val rows = extendedCharMapping[rootCode]
+    // mapping lets non-latin layouts reuse the popup with their own alternates
+    class ExtendedCharKeyboard(
+        rootCode: Int,
+        mapping: Map<Int, List<List<Char>>> = extendedCharMapping
+    ) : Layout {
+        private val rows = mapping[rootCode]
 
         @Composable
         override fun ColumnScope.Render(
